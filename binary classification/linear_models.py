@@ -83,14 +83,14 @@ class TextProcessor( object ):
         ''' vectorize string columns '''
         vectorzisers = []
         for name, arr in [ ( 'train_X', self.dataSet.train_X ), ( 'val_X', self.dataSet.val_X ), ( 'test_X', self.dataSet.test_X ) ]:
+            csr = None
             for idx, col in enumerate( vectorizeCols ):
-                csr = None
                 arr[ :, col ] = self._applyLemmatization( arr[ :, col ] )
                 if 'train' in name:
                     vec = copy.deepcopy( self.vectorizer )
                     vec.fit( arr[ :, col ] )   
                     vectorzisers.append( vec )
-                csr = hstack( [ csr, vectorzisers[ idx ].transform( arr[ :, col ] ) ] ) if csr else vectorzisers[ idx ].transform( arr[ :, col ] )
+                csr = hstack( [ csr, vectorzisers[ idx ].transform( arr[ :, col ] ) ] ) if not csr is None else vectorzisers[ idx ].transform( arr[ :, col ] )
                 arr = np.delete( arr, col, 1 )
             if arr.shape:
                 csr = hstack( [ csr, csr_matrix( arr.astype( float ) ) ] )
@@ -103,11 +103,14 @@ class Classifier( object ):
 
     def classify( self, dataSet ):
         ''' call classification models '''
-        #pca = TruncatedSVD( n_components=500 )
-        #pca_comps = pca.fit_transform( dataSet.train_X )
-        self.classifier.fit( dataSet.train_X, dataSet.train_Y ) 
-        print ( "Accuracy for validation set %s" % ( accuracy_score( dataSet.val_Y, self.classifier.predict( dataSet.val_X ) ) ) )
-        print ( "Accuracy for test set %s" % ( accuracy_score( dataSet.test_Y, self.classifier.predict( dataSet.test_X ) ) ) )
+        pca = TruncatedSVD( n_components=2000 )
+        pca_comps = pca.fit_transform( dataSet.train_X )
+        self.classifier.fit( pca_comps, dataSet.train_Y ) 
+        print ( "Accuracy for validation set %s" % ( accuracy_score( dataSet.val_Y, self.classifier.predict( pca.transform( dataSet.val_X ) ) ) ) )
+        print ( "Accuracy for test set %s" % ( accuracy_score( dataSet.test_Y, self.classifier.predict( pca.transform( dataSet.test_X ) ) ) ) )
+        #self.classifier.fit( dataSet.train_X, dataSet.train_Y ) 
+        #print ( "Accuracy for validation set %s" % ( accuracy_score( dataSet.val_Y, self.classifier.predict( dataSet.val_X ) ) ) )
+        #print ( "Accuracy for test set %s" % ( accuracy_score( dataSet.test_Y, self.classifier.predict( dataSet.test_X ) ) ) )
 
 def main():
     dirPath   = 'H://Fake News Detection//LIAR-PLUS-master//dataset//'
