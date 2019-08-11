@@ -125,7 +125,7 @@ def main():
     TextProcessor( dataSet, use_idf=True, ngram_range=(1, 1) ).vectorize( [7, 6, 5, 4, 3, 2, 1, 0] ) 
     #classifiers
     print( 'Support Vector Machine' )
-    Classifier( SVC( kernel='r', C=0.001 ) ).classify( dataSet )
+    Classifier( SVC( kernel='linear', C=0.001 ) ).classify( dataSet )
     print( 'MultinomialNB' )
     Classifier( MultinomialNB() ).classify( dataSet )
     print( 'LogisticRegression' )
